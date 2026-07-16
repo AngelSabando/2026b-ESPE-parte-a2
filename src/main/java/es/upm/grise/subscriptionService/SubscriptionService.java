@@ -27,7 +27,7 @@ public class SubscriptionService {
 	 */
 
 	public void addSubscriber(User user) throws NullUserException, ExistingUserException, UserDoesNotHaveEmailException {
-		if(user==null){
+		if(user == null){
 			throw new NullUserException();
 		}
 
@@ -35,12 +35,8 @@ public class SubscriptionService {
 			throw new ExistingUserException();
 		}
 
-		if(user.getEmail() == null){
+		if(user.getDeliveryType() != Delivery.LOCAL && user.getEmail() == null){
 			throw new UserDoesNotHaveEmailException();
-		}
-
-		if(user.getDeliveryType() == Delivery.LOCAL){
-			subscribers.add(user);	
 		}
 
 		subscribers.add(user);	
@@ -68,7 +64,9 @@ public class SubscriptionService {
 	public int sendMessage(Message message) {
 		int discardedMessages = 0;
 		for (User user : subscribers) {
-			if (user.getDeliveryType() == Delivery.LOCAL) {
+			if (user.getDeliveryType() == Delivery.EMAIL) {
+				emailService.sendMessage(user, message);
+			} else if (user.getDeliveryType() == Delivery.LOCAL) {
 				user.saveMessage(message);
 			} else if (user.getDeliveryType() == Delivery.DO_NOT_DELIVER) {
 				Message discardedMessage = new Message(message.getId(), "Ha perdido ud. un mensaje");
@@ -77,7 +75,6 @@ public class SubscriptionService {
 			}
 		}
 		return discardedMessages;
-		
 	}
 
 }
